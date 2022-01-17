@@ -49,7 +49,7 @@ end
 module type Client = sig
   type socket
 
-  (* The underlying Gluten runtime *)
+  (* The underlying Dream_gluten runtime *)
   type runtime
 
   type t =
