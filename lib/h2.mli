@@ -53,9 +53,9 @@
     See {{:https://tools.ietf.org/html/rfc7231#section-4} RFC7231§4} for more
     details.
 
-    This module is a proxy to [Httpaf.Method] and is included in h2 for
+    This module is a proxy to [Dream_httpaf.Method] and is included in h2 for
     convenience. *)
-module Method : module type of Httpaf.Method
+module Method : module type of Dream_httpaf.Method
 
 (** Response Status Codes
 
@@ -65,7 +65,7 @@ module Method : module type of Httpaf.Method
     See {{:https://tools.ietf.org/html/rfc7231#section-6} RFC7231§6} for more
     details.
 
-    This module is a strict superset of [Httpaf.Status]. Even though the HTTP/2
+    This module is a strict superset of [Dream_httpaf.Status]. Even though the HTTP/2
     specification removes support for the [Switching_protocols] status code, h2
     keeps it for the sake of higher level interaction between OCaml libraries
     that support both HTTP/1 and HTTP/2.
@@ -74,10 +74,10 @@ module Method : module type of Httpaf.Method
     more details. *)
 module Status : sig
   include
-    module type of Httpaf.Status
-      with type client_error := Httpaf.Status.client_error
-       and type standard := Httpaf.Status.standard
-       and type t := Httpaf.Status.t
+    module type of Dream_httpaf.Status
+      with type client_error := Dream_httpaf.Status.client_error
+       and type standard := Dream_httpaf.Status.standard
+       and type t := Dream_httpaf.Status.t
 
   (** The 4xx (Client Error) class of status code indicates that the client
       seems to have erred.
@@ -89,7 +89,7 @@ module Status : sig
       Request) tag. See {{:https://tools.ietf.org/html/rfc7540#section-9.1.2}
       RFC7540§9.1.2} for more details. *)
   type client_error =
-    [ Httpaf.Status.client_error
+    [ Dream_httpaf.Status.client_error
     | `Misdirected_request
     ]
 
@@ -101,7 +101,7 @@ module Status : sig
       and {{:https://tools.ietf.org/html/rfc7540#section-9.1.2} RFC7540§9.1.2}
       for more details. *)
   type standard =
-    [ Httpaf.Status.standard
+    [ Dream_httpaf.Status.standard
     | client_error
     ]
 
@@ -469,7 +469,7 @@ module Response : sig
 end
 
 (** IOVec *)
-module IOVec : module type of Httpaf.IOVec
+module IOVec : module type of Dream_httpaf.IOVec
 
 (** {2 Request Descriptor} *)
 module Reqd : sig
@@ -709,7 +709,7 @@ module Server_connection : sig
   val create_h2c
     :  ?config:Config.t
     -> ?error_handler:error_handler
-    -> http_request:Httpaf.Request.t
+    -> http_request:Dream_httpaf.Request.t
     -> ?request_body:Bigstringaf.t IOVec.t list
     -> request_handler
     -> (t, string) result
@@ -842,7 +842,7 @@ module Client_connection : sig
   val create_h2c
     :  ?config:Config.t
     -> ?push_handler:(Request.t -> (response_handler, unit) result)
-    -> http_request:Httpaf.Request.t
+    -> http_request:Dream_httpaf.Request.t
     -> error_handler:error_handler
     -> response_handler * error_handler
     -> (t, string) result

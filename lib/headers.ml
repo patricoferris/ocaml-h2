@@ -357,8 +357,8 @@ let is_valid_h2c_connection connection =
   | _ ->
     false
 
-let of_http1 { Httpaf.Request.headers; meth; target; _ } =
-  let module Headers = Httpaf.Headers in
+let of_http1 { Dream_httpaf.Request.headers; meth; target; _ } =
+  let module Headers = Dream_httpaf.Headers in
   match Headers.get headers "host" with
   | Some host ->
     (* From RFC7540§8.1.2.3:
@@ -390,7 +390,7 @@ let of_http1 { Httpaf.Request.headers; meth; target; _ } =
             (name, value) :: acc)
         ~init:
           [ ":authority", host
-          ; ":method", Httpaf.Method.to_string meth
+          ; ":method", Dream_httpaf.Method.to_string meth
           ; ":path", target
           ; ":scheme", "https"
           ]

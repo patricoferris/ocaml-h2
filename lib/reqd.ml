@@ -49,7 +49,7 @@ type response_state =
   | Fixed of
       { response : Response.t
       ; mutable iovec :
-          [ `String of string | `Bigstring of Bigstringaf.t ] Httpaf.IOVec.t
+          [ `String of string | `Bigstring of Bigstringaf.t ] Dream_httpaf.IOVec.t
       }
   | Streaming of
       { response : Response.t
@@ -163,11 +163,11 @@ let send_fixed_response t s response data =
       match data with
       | `String s ->
         let len = String.length s in
-        let iovec = { Httpaf.IOVec.buffer = `String s; off = 0; len } in
+        let iovec = { Dream_httpaf.IOVec.buffer = `String s; off = 0; len } in
         iovec, len
       | `Bigstring b ->
         let len = Bigstringaf.length b in
-        let iovec = { Httpaf.IOVec.buffer = `Bigstring b; off = 0; len } in
+        let iovec = { Dream_httpaf.IOVec.buffer = `Bigstring b; off = 0; len } in
         iovec, len
     in
     let should_send_data = length <> 0 in
@@ -532,7 +532,7 @@ let flush_response_body t ~max_bytes =
             Writer.make_frame_info ~max_frame_size:t.max_frame_size t.id
           in
           write_buffer_data t.writer ~off ~len:max_bytes frame_info buffer;
-          r.iovec <- Httpaf.IOVec.shift iovec max_bytes;
+          r.iovec <- Dream_httpaf.IOVec.shift iovec max_bytes;
           max_bytes)
         else
           let frame_info =

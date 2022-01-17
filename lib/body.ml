@@ -118,7 +118,7 @@ let rec do_execute_read t on_eof on_read =
     t.read_scheduled <- false;
     t.on_eof <- default_on_eof;
     t.on_read <- default_on_read;
-    let { Httpaf.IOVec.buffer; off; len } = iovec in
+    let { Dream_httpaf.IOVec.buffer; off; len } = iovec in
     Faraday.shift t.faraday len;
     on_read buffer ~off ~len;
     (* Application is done reading, we can give flow control tokens back to the
@@ -150,8 +150,8 @@ let transfer_to_writer t writer ~max_frame_size ~max_bytes stream_id =
     0
   | `Writev iovecs ->
     let buffered = t.buffered_bytes in
-    let iovecs = Httpaf.IOVec.shiftv iovecs !buffered in
-    let lengthv = Httpaf.IOVec.lengthv iovecs in
+    let iovecs = Dream_httpaf.IOVec.shiftv iovecs !buffered in
+    let lengthv = Dream_httpaf.IOVec.lengthv iovecs in
     let writev_len = if max_bytes < lengthv then max_bytes else lengthv in
     buffered := !buffered + writev_len;
     let frame_info = Writer.make_frame_info ~max_frame_size stream_id in
