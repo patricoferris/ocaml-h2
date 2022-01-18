@@ -192,7 +192,7 @@ module Client_connection_tests = struct
 
   (* Well-formed HEADERS + CONTINUATION frames. *)
   let header_and_continuation_frames =
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     let headers =
       { Frame.frame_header =
           { payload_length = 0
@@ -342,7 +342,7 @@ module Client_connection_tests = struct
       true
       (Flags.test_end_stream frame.frame_header.flags);
     report_write_result t (`Ok lenv);
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     read_response t hpack_encoder (Response.create `OK);
     Alcotest.(check bool) "Response handler called" true !handler_called
 
@@ -383,7 +383,7 @@ module Client_connection_tests = struct
       true
       (Flags.test_end_stream frame.frame_header.flags);
     report_write_result t (`Ok lenv);
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     read_response
       t
       hpack_encoder
@@ -528,7 +528,7 @@ module Client_connection_tests = struct
       true
       (Flags.test_end_stream frame.frame_header.flags);
     report_write_result t (`Ok lenv);
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     read_response
       t
       hpack_encoder
@@ -604,7 +604,7 @@ module Client_connection_tests = struct
       true
       (Flags.test_end_stream frame.frame_header.flags);
     report_write_result t (`Ok lenv);
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     read_response
       t
       hpack_encoder
@@ -717,7 +717,7 @@ module Client_connection_tests = struct
        body"
       true
       (not (Stream.is_open stream));
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     read_response t hpack_encoder (Response.create `OK);
     Alcotest.(check bool) "Response handler called" true !handler_called;
     Alcotest.(check bool)
@@ -844,7 +844,7 @@ module Client_connection_tests = struct
     with
     | Ok t ->
       handle_preface t;
-      let hpack_encoder = Hpack.Encoder.create 4096 in
+      let hpack_encoder = Dream_hpack.Encoder.create 4096 in
       read_response t hpack_encoder (Response.create `OK);
       Alcotest.(check bool)
         "Response handler called"
@@ -869,7 +869,7 @@ module Client_connection_tests = struct
     Body.close_writer request_body;
     let _, lenv = flush_pending_writes t in
     report_write_result t (`Ok lenv);
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     read_response
       t
       hpack_encoder
@@ -924,7 +924,7 @@ module Client_connection_tests = struct
       true
       (Flags.test_end_stream frame.frame_header.flags);
     report_write_result t (`Ok lenv);
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     read_response
       t
       hpack_encoder
@@ -967,7 +967,7 @@ module Client_connection_tests = struct
         ~response_handler
     in
     flush_request t;
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     read_response
       t
       hpack_encoder
@@ -1019,7 +1019,7 @@ module Client_connection_tests = struct
     Alcotest.(check int) "Writer issues a zero-payload DATA frame" 9 lenv;
     report_write_result t (`Ok lenv);
     writer_yielded t;
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     read_response
       t
       hpack_encoder
@@ -1079,7 +1079,7 @@ module Client_connection_tests = struct
     let _, lenv = flush_pending_writes t in
     report_write_result t (`Ok lenv);
     writer_yielded t;
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     read_response
       t
       hpack_encoder
@@ -1116,7 +1116,7 @@ module Client_connection_tests = struct
     flush_request t;
     Body.close_writer request_body;
     flush_request t;
-    let hpack_encoder = Hpack.Encoder.create 4096 in
+    let hpack_encoder = Dream_hpack.Encoder.create 4096 in
     read_response
       t
       hpack_encoder
