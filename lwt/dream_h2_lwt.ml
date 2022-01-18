@@ -1,6 +1,6 @@
 (*----------------------------------------------------------------------------
- *  Copyright (c) 2018 Inhabited Type LLC.
- *  Copyright (c) 2019-2020 Antonio N. Monteiro.
+ *  Copyright (c) 2017 Inhabited Type LLC.
+ *  Copyright (c) 2019 Antonio N. Monteiro.
  *
  *  All rights reserved.
  *
@@ -32,48 +32,61 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *---------------------------------------------------------------------------*)
 
-open Async
-open H2
+open Lwt.Infix
+include Dream_h2_lwt_intf
 
-module Server : sig
-  include
-    H2_async_intf.Server
-      with type socket := ([ `Active ], Socket.Address.Inet.t) Socket.t
-       and type addr := Socket.Address.Inet.t
+module Server (Server_runtime : Dream_gluten_lwt.Server) = struct
+  type socket = Server_runtime.socket
 
-  module SSL : sig
-    include
-      H2_async_intf.Server
-        with type socket := Dream_gluten_async.Server.SSL.socket
-         and type addr := Socket.Address.Inet.t
-
-    val create_connection_handler_with_default
-      :  certfile:string
-      -> keyfile:string
-      -> ?config:Config.t
-      -> request_handler:('a -> Server_connection.request_handler)
-      -> error_handler:('a -> Server_connection.error_handler)
-      -> (Socket.Address.Inet.t as 'a)
-      -> ([ `Active ], 'a) Socket.t
-      -> unit Deferred.t
-  end
+  let create_connection_handler
+      ?(config = Dream_h2.Config.default)
+      ~request_handler
+      ~error_handler
+      client_addr
+      socket
+    =
+    let connection =
+      Dream_h2.Server_connection.create
+        ~config
+        ~error_handler:(error_handler client_addr)
+        (request_handler client_addr)
+    in
+    Server_runtime.create_connection_handler
+      ~read_buffer_size:config.read_buffer_size
+      ~protocol:(module Dream_h2.Server_connection)
+      connection
+      client_addr
+      socket
 end
 
-module Client : sig
-  include
-    H2_async_intf.Client
-      with type socket = ([ `Active ], Socket.Address.Inet.t) Socket.t
+module Client (Client_runtime : Dream_gluten_lwt.Client) = struct
+  type socket = Client_runtime.socket
 
-  module SSL : sig
-    include
-      H2_async_intf.Client with type socket = Dream_gluten_async.Client.SSL.socket
+  type runtime = Client_runtime.t
 
-    val create_connection_with_default
-      :  ?config:Config.t
-      -> ?push_handler:
-           (Request.t -> (Client_connection.response_handler, unit) result)
-      -> error_handler:Client_connection.error_handler
-      -> ([ `Active ], [< Socket.Address.t ]) Socket.t
-      -> t Deferred.t
-  end
+  type t =
+    { connection : Dream_h2.Client_connection.t
+    ; runtime : runtime
+    }
+
+  let create_connection
+      ?(config = Dream_h2.Config.default) ?push_handler ~error_handler socket
+    =
+    let connection =
+      Dream_h2.Client_connection.create ~config ?push_handler ~error_handler
+    in
+    Client_runtime.create
+      ~read_buffer_size:config.read_buffer_size
+      ~protocol:(module Dream_h2.Client_connection)
+      connection
+      socket
+    >|= fun runtime -> { runtime; connection }
+
+  let request t = Dream_h2.Client_connection.request t.connection
+
+  let ping t = Dream_h2.Client_connection.ping t.connection
+
+  let shutdown t = Client_runtime.shutdown t.runtime
+
+  let is_closed t = Client_runtime.is_closed t.runtime
 end

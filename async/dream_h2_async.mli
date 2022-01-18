@@ -1,6 +1,6 @@
 (*----------------------------------------------------------------------------
- *  Copyright (c) 2017 Inhabited Type LLC.
- *  Copyright (c) 2019 Antonio N. Monteiro.
+ *  Copyright (c) 2018 Inhabited Type LLC.
+ *  Copyright (c) 2019-2020 Antonio N. Monteiro.
  *
  *  All rights reserved.
  *
@@ -32,18 +32,48 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *---------------------------------------------------------------------------*)
 
-module type Server = H2_lwt_intf.Server
+open Async
+open Dream_h2
 
-module type Client = H2_lwt_intf.Client
+module Server : sig
+  include
+    Dream_h2_async_intf.Server
+      with type socket := ([ `Active ], Socket.Address.Inet.t) Socket.t
+       and type addr := Socket.Address.Inet.t
 
-(* The function that results from [create_connection_handler] should be passed
-   to [Lwt_io.establish_server_with_client_socket]. *)
-module Server (Server_runtime : Dream_gluten_lwt.Server) :
-  Server
-    with type socket = Server_runtime.socket
-     and type addr := Server_runtime.addr
+  module SSL : sig
+    include
+      Dream_h2_async_intf.Server
+        with type socket := Dream_gluten_async.Server.SSL.socket
+         and type addr := Socket.Address.Inet.t
 
-module Client (Client_runtime : Dream_gluten_lwt.Client) :
-  Client
-    with type socket = Client_runtime.socket
-     and type runtime = Client_runtime.t
+    val create_connection_handler_with_default
+      :  certfile:string
+      -> keyfile:string
+      -> ?config:Config.t
+      -> request_handler:('a -> Server_connection.request_handler)
+      -> error_handler:('a -> Server_connection.error_handler)
+      -> (Socket.Address.Inet.t as 'a)
+      -> ([ `Active ], 'a) Socket.t
+      -> unit Deferred.t
+  end
+end
+
+module Client : sig
+  include
+    Dream_h2_async_intf.Client
+      with type socket = ([ `Active ], Socket.Address.Inet.t) Socket.t
+
+  module SSL : sig
+    include
+      Dream_h2_async_intf.Client with type socket = Dream_gluten_async.Client.SSL.socket
+
+    val create_connection_with_default
+      :  ?config:Config.t
+      -> ?push_handler:
+           (Request.t -> (Client_connection.response_handler, unit) result)
+      -> error_handler:Client_connection.error_handler
+      -> ([ `Active ], [< Socket.Address.t ]) Socket.t
+      -> t Deferred.t
+  end
+end

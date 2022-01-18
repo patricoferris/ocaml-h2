@@ -16,14 +16,14 @@ let
     inherit dirs;
     files = files ++ [ "dune-project" ];
   };
-  buildH2 = args: buildDunePackage ({
+  buildDream_h2 = args: buildDunePackage ({
     version = "0.6.0-dev";
     useDune2 = true;
     doCheck = doCheck;
   } // args);
 in
 rec {
-  hpack = buildH2 {
+  hpack = buildDream_h2 {
     pname = "hpack";
     src = genSrc {
       dirs = [ "hpack" ];
@@ -37,7 +37,7 @@ rec {
     '';
   };
 
-  h2 = buildH2 {
+  h2 = buildDream_h2 {
     pname = "h2";
     src = genSrc {
       dirs = [ "lib" "lib_test" ];
@@ -56,7 +56,7 @@ rec {
   };
 
   # These two don't have tests
-  h2-lwt = buildH2 {
+  h2-lwt = buildDream_h2 {
     pname = "h2-lwt";
     src = genSrc {
       dirs = [ "lwt" ];
@@ -66,7 +66,7 @@ rec {
     propagatedBuildInputs = [ h2 lwt gluten-lwt ];
   };
 
-  h2-lwt-unix = buildH2 {
+  h2-lwt-unix = buildDream_h2 {
     pname = "h2-lwt-unix";
     src = genSrc {
       dirs = [ "lwt-unix" ];
@@ -80,7 +80,7 @@ rec {
       lwt_ssl
     ];
   };
-  h2-async = buildH2 {
+  h2-async = buildDream_h2 {
     pname = "h2-async";
     src = genSrc {
       dirs = [ "async" ];
@@ -96,7 +96,7 @@ rec {
     ];
   };
 
-  h2-mirage = buildH2 {
+  h2-mirage = buildDream_h2 {
     pname = "h2-mirage";
     src = genSrc {
       dirs = [ "mirage" ];

@@ -30,24 +30,35 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *---------------------------------------------------------------------------*)
 
-open H2
+module Server (Flow : Mirage_flow.S) = struct
+  type socket = Flow.flow
 
-(* Note: could theoretically be `H2_lwt.Server with type socket := flow and
- * type addr := unit` but the signature for `create_connection_handler` takes
- * one less arg in Mirage (client address). *)
+  module Server_runtime = Dream_h2_lwt.Server (Dream_gluten_mirage.Server (Flow))
+
+  let create_connection_handler ?config ~request_handler ~error_handler flow =
+    let request_handler () = request_handler in
+    let error_handler () = error_handler in
+    Server_runtime.create_connection_handler
+      ?config
+      ~request_handler
+      ~error_handler
+      ()
+      flow
+end
+
+(* Almost like the `Dream_h2_lwt.Server` module type but we don't need the client
+ * address argument in Mirage. It's somewhere else. *)
 module type Server = sig
   type socket
 
   val create_connection_handler
-    :  ?config:Config.t
-    -> request_handler:Server_connection.request_handler
-    -> error_handler:Server_connection.error_handler
+    :  ?config:Dream_h2.Config.t
+    -> request_handler:Dream_h2.Server_connection.request_handler
+    -> error_handler:Dream_h2.Server_connection.error_handler
     -> socket
     -> unit Lwt.t
 end
 
-module Server (Flow : Mirage_flow.S) : Server with type socket = Flow.flow
+module type Client = Dream_h2_lwt.Client
 
-module type Client = H2_lwt.Client
-
-module Client (Flow : Mirage_flow.S) : Client with type socket = Flow.flow
+module Client (Flow : Mirage_flow.S) = Dream_h2_lwt.Client (Dream_gluten_mirage.Client (Flow))

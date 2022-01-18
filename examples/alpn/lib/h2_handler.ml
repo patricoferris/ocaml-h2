@@ -1,4 +1,4 @@
-open H2
+open Dream_h2
 
 let request_handler : Unix.sockaddr -> Reqd.t -> unit =
  fun _client_address request_descriptor ->
@@ -21,7 +21,7 @@ let request_handler : Unix.sockaddr -> Reqd.t -> unit =
     "Welcome to an ALPN-negotiated HTTP/2 connection"
 
 let error_handler
-    :  Unix.sockaddr -> ?request:H2.Request.t -> _
+    :  Unix.sockaddr -> ?request:Dream_h2.Request.t -> _
     -> (Headers.t -> [ `write ] Body.t) -> unit
   =
  fun _client_address ?request:_ _error start_response ->

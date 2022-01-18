@@ -32,61 +32,18 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *---------------------------------------------------------------------------*)
 
-open Lwt.Infix
-include H2_lwt_intf
+module type Server = Dream_h2_lwt_intf.Server
 
-module Server (Server_runtime : Dream_gluten_lwt.Server) = struct
-  type socket = Server_runtime.socket
+module type Client = Dream_h2_lwt_intf.Client
 
-  let create_connection_handler
-      ?(config = H2.Config.default)
-      ~request_handler
-      ~error_handler
-      client_addr
-      socket
-    =
-    let connection =
-      H2.Server_connection.create
-        ~config
-        ~error_handler:(error_handler client_addr)
-        (request_handler client_addr)
-    in
-    Server_runtime.create_connection_handler
-      ~read_buffer_size:config.read_buffer_size
-      ~protocol:(module H2.Server_connection)
-      connection
-      client_addr
-      socket
-end
+(* The function that results from [create_connection_handler] should be passed
+   to [Lwt_io.establish_server_with_client_socket]. *)
+module Server (Server_runtime : Dream_gluten_lwt.Server) :
+  Server
+    with type socket = Server_runtime.socket
+     and type addr := Server_runtime.addr
 
-module Client (Client_runtime : Dream_gluten_lwt.Client) = struct
-  type socket = Client_runtime.socket
-
-  type runtime = Client_runtime.t
-
-  type t =
-    { connection : H2.Client_connection.t
-    ; runtime : runtime
-    }
-
-  let create_connection
-      ?(config = H2.Config.default) ?push_handler ~error_handler socket
-    =
-    let connection =
-      H2.Client_connection.create ~config ?push_handler ~error_handler
-    in
-    Client_runtime.create
-      ~read_buffer_size:config.read_buffer_size
-      ~protocol:(module H2.Client_connection)
-      connection
-      socket
-    >|= fun runtime -> { runtime; connection }
-
-  let request t = H2.Client_connection.request t.connection
-
-  let ping t = H2.Client_connection.ping t.connection
-
-  let shutdown t = Client_runtime.shutdown t.runtime
-
-  let is_closed t = Client_runtime.is_closed t.runtime
-end
+module Client (Client_runtime : Dream_gluten_lwt.Client) :
+  Client
+    with type socket = Client_runtime.socket
+     and type runtime = Client_runtime.t

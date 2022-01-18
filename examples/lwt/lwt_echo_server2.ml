@@ -13,7 +13,7 @@ let set_interval s f destroy =
   set_interval_loop s f 2
 
 let connection_handler : Unix.sockaddr -> Lwt_unix.file_descr -> unit Lwt.t =
-  let open H2 in
+  let open Dream_h2 in
   let request_handler : Unix.sockaddr -> Reqd.t -> unit =
    fun _client_address request_descriptor ->
     let request = Reqd.request request_descriptor in
@@ -112,7 +112,7 @@ let connection_handler : Unix.sockaddr -> Lwt_unix.file_descr -> unit Lwt.t =
         "Hello, Sean."
   in
   let error_handler
-      :  Unix.sockaddr -> ?request:H2.Request.t -> _
+      :  Unix.sockaddr -> ?request:Dream_h2.Request.t -> _
       -> (Headers.t -> [ `write ] Body.t) -> unit
     =
    fun _client_address ?request:_ error start_response ->
@@ -125,7 +125,7 @@ let connection_handler : Unix.sockaddr -> Lwt_unix.file_descr -> unit Lwt.t =
       Body.write_string response_body (Status.default_reason_phrase error));
     Body.close_writer response_body
   in
-  H2_lwt_unix.Server.create_connection_handler
+  Dream_h2_lwt_unix.Server.create_connection_handler
     ?config:None
     ~request_handler
     ~error_handler
